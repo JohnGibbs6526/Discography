@@ -52,29 +52,35 @@ form.addEventListener("submit", e => {
 
     // get the Discogs API data
 
-    getDisc(form.work.value)
-        .then(data => {
+    getDisc(form.work.value).then(data => {
 
-            // input album
+        // input album
 
-            info.innerHTML += `
-                <h1>${form.work.value}</h1>
-                <h2>Album</h2>
-                <div>${data.results[rand].title}</div>
-            `;
+        const band = form.work.value;
+        const albumTitle = data.results[rand].title;
 
-            return data.results[rand].master_url;
-        }
-    ).then(master => {
+        info.innerHTML += `
+            <h1>${band}</h1>
+            <h2>Album</h2>
+            <div>${albumTitle}</div>
+        `;
+
+        return data.results[rand].master_url;
+    }).then(master => {
         return getMaster(master);
     }).then(data => {
 
         // input tracklist
+
+        console.log(data.tracklist);
         
         info.innerHTML += "<h3>Tracklist</h3>";
 
         data.tracklist.forEach(track => {
             info.innerHTML += `<div>${track.title}</div>`;
         });
+    }).catch(err => {
+        console.log(err);
+        info.innerHTML = `<h1>Uh oh! Something went wrong! Please try again now or later.</h1>`;
     });
 });
