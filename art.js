@@ -14,30 +14,30 @@ const getDisc = async query => {
     const search = await fetch(`https://api.discogs.com/database/search?artist=${query}&page=${page}&per_page=3${tokens}`);
     const sData = await search.json();
 
-    const master = await fetch(`${sData.results[0].master_url}`);
-    const mData = await master.json();
+    const source = await fetch(`${sData.results[0].resource_url}`);
+    const rData = await source.json();
 
-    if (search.status != 200 || master.status != 200) {
+    if (search.status != 200) {
         throw new Error("Search fetching failed.");
     }
 
     console.log(sData);
-    console.log(mData);
+    console.log(rData);
 
     return sData;
 };
 
-// for masters
+// for resources
 
-const getMaster = async masterURL => {
-    const master = await fetch(masterURL);
-    const mData = await master.json();
+const getResource = async sourceURL => {
+    const source = await fetch(sourceURL);
+    const rData = await source.json();
 
-    if (master.status != 200) {
-        throw new Error("Master fetching failed.");
+    if (source.status != 200) {
+        throw new Error("Resource fetching failed.");
     }
 
-    return mData;
+    return rData;
 }
 
 const form = document.querySelector("form");
@@ -65,22 +65,31 @@ form.addEventListener("submit", e => {
             <div>${albumTitle}</div>
         `;
 
-        return data.results[rand].master_url;
-    }).then(master => {
-        return getMaster(master);
+        return data.results[rand].resource_url;
+    }).then(source => {
+        const newSource = getResource(source);
+
+        console.log(newSource);
+
+        return getResource(source);
     }).then(data => {
 
-        // input tracklist
-
-        console.log(data.tracklist);
+        // input year and tracklist
         
-        info.innerHTML += "<h3>Tracklist</h3>";
+        const year = data.year;
+
+        info.innerHTML += `
+            <h3>Year</h3>
+            <div>${year}</div>
+            <h3>Tracklist</h3>
+        `;
 
         data.tracklist.forEach(track => {
             info.innerHTML += `<div>${track.title}</div>`;
         });
     }).catch(err => {
         console.log(err);
-        info.innerHTML = `<h1>Uh oh! Something went wrong! Please try again now or later.</h1>`;
+        
+        info.innerHTML = `<h1>Uh oh! Something went wrong! Please try again later.</h1>`;
     });
 });
